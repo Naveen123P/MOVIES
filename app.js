@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 module.exports = app;
+app.use(express.json());
 const { open } = require("sqlite");
 const sqlite3 = require("sqlite3");
 const path = require("path");
@@ -42,8 +43,8 @@ app.post("/movies/", async (request, response) => {
     movie(director_id, movie_name, lead_actor)
     VALUES (
         ${directorId},
-        ${movieName},
-        ${leadActor}
+        '${movieName}',
+        '${leadActor}'
     );
     `;
   const dbResponse = await db.run(postMovieQuary);
@@ -78,8 +79,8 @@ app.put("/movies/:movieId/", async (request, response) => {
         movie
     SET
        director_id = ${directorId},
-       movie_name =  ${movieName},
-       lead_actor =  ${leadActor}
+       movie_name =  '${movieName}',
+       lead_actor =  '${leadActor}'
     WHERE 
         movie_id = ${movieId}
     `;
