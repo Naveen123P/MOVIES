@@ -13,11 +13,33 @@ const initilizeDBAndServer = async () => {
     driver: sqlite3.Database,
   });
   app.listen(3001, () => {
-    console.log("Server is running at http://localhost/:3001/");
+    console.log("Server is running at http://localhost:3001/");
   });
 };
 
 initilizeDBAndServer();
+
+const convertDbObjectToResponseObjectMovieName = (dbObject) => {
+  return {
+    movieName: dbObject.movie_name,
+  };
+};
+
+const convertDbObjectToResponseObjectMovieDetails = (dbObject) => {
+  return {
+    movieId: dbObject.movie_id,
+    directorId: dbObject.director_id,
+    movieName: dbObject.movie_name,
+    leadActor: dbObject.lead_actor,
+  };
+};
+
+const convertDbObjectToResponseObjectDirectorDetails = (dbObject) => {
+  return {
+    directorId: dbObject.director_id,
+    directorName: dbObject.director_name,
+  };
+};
 
 // API 1
 
@@ -29,7 +51,11 @@ app.get("/movies/", async (request, response) => {
         movie;
     `;
   const movieNames = await db.all(getMovieNameQuary);
-  response.send(movieNames);
+  response.send(
+    movieNames.map((eachMovie) =>
+      convertDbObjectToResponseObjectMovieName(eachMovie)
+    )
+  );
 });
 
 // API 2
@@ -42,8 +68,8 @@ app.post("/movies/", async (request, response) => {
     movie(director_id, movie_name, lead_actor)
     VALUES (
         ${directorId},
-        ${movieName},
-        ${leadActor}
+        '${movieName}',
+        '${leadActor}'
     );
     `;
   const dbResponse = await db.run(postMovieQuary);
@@ -64,7 +90,7 @@ app.get("/movies/:movieId/", async (request, response) => {
 
     `;
   const movieDetails = await db.get(movieDetailsQuary);
-  response.send(movieDetails);
+  response.send(convertDbObjectToResponseObjectMovieDetails(movieDetails));
 });
 
 // API 4
@@ -78,8 +104,8 @@ app.put("/movies/:movieId/", async (request, response) => {
         movie
     SET
        director_id = ${directorId},
-       movie_name =  ${movieName},
-       lead_actor =  ${leadActor}
+       movie_name =  '${movieName}',
+       lead_actor =  '${leadActor}'
     WHERE 
         movie_id = ${movieId}
     `;
@@ -111,7 +137,12 @@ app.get("/directors/", async (request, response) => {
         director;
     `;
   const directorDetails = await db.all(getDirectorsQuary);
-  response.send(directorDetails);
+
+  response.send(
+    directorDetails.map((eachDirector) =>
+      convertDbObjectToResponseObjectDirectorDetails(eachDirector)
+    )
+  );
 });
 
 // API 7
@@ -128,5 +159,9 @@ app.get("/directors/:directorId/movies/", async (request, response) => {
 
         `;
   const directorMovies = await db.all(getDirMovQuary);
-  response.send(directorMovies);
+  response.send(
+    directorMovies.map((eachMovie) =>
+      convertDbObjectToResponseObjectMovieName(eachMovie)
+    )
+  );
 });
